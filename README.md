@@ -1,24 +1,3 @@
----
-page_type: sample
-languages:
-- azdeveloper
-- aspx-csharp
-- csharp
-- bicep
-products:
-- azure
-- azure-cosmos-db
-- azure-container-apps
-- azure-table-storage
-- azure-storage
-- azure-container-registry
-- aspnet-core
-urlFragment: template
-name: URL Shortener using Microsoft Orleans and Azure for hosting and data
-description: An ASP.NET Core 8.0 web application to illustrate basic Microsoft Orleans concepts; such as working with Grains, Silos, and persistent state. Uses Azure Developer CLI (azd) to build, deploy, and monitor.
----
-<!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
-
 # URL Shortener using Microsoft Orleans and Azure for hosting and data
 
 [![Microsoft Learn Quickstart](https://img.shields.io/static/v1?style=for-the-badge&label=Microsoft%20Learn%20Quickstart&message=Go&color=purple&logo=microsoft)](https://learn.microsoft.com/dotnet/orleans/quickstarts/deploy-scale-orleans-on-azure)
