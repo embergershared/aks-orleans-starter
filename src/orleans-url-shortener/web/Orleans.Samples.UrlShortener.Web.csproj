@@ -6,6 +6,7 @@
     <EnableDefaultContentItems>true</EnableDefaultContentItems>
     <UserSecretsId>fd91f2fa-0d08-4927-9733-f2259371d43f</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <AssemblyName>orleans-urlshortener</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Server" Version="8.*" />

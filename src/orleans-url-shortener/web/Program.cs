@@ -19,6 +19,8 @@ app.MapGet("/go/{shortenedRouteSegment:required}", Redirect);
 
 await app.RunAsync();
 
+
+#region Methods
 static async Task<IResult> Shorten(IGrainFactory grains, HttpRequest request, string url)
 {
     // Gets the base URL for the current request
@@ -75,3 +77,4 @@ static async Task<IResult> Redirect(IGrainFactory grains, string shortenedRouteS
         preserveMethod: false
     );
 }
+#endregion
