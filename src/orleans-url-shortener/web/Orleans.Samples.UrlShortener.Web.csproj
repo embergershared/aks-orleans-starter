@@ -11,5 +11,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.Server" Version="8.*" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="Orleans.Clustering.Kubernetes" Version="8.2.1" />
   </ItemGroup>
 </Project>

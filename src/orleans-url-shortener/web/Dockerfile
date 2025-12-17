@@ -27,4 +27,4 @@ RUN dotnet publish "./Orleans.Samples.UrlShortener.Web.csproj" -c $BUILD_CONFIGU
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Orleans.Samples.UrlShortener.Web.dll"]
+ENTRYPOINT ["dotnet", "orleans-urlshortener.dll"]
