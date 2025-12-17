@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orleans-urlshortener-config
+  namespace: orleans-urlshortener
+  labels:
+    app: orleans-urlshortener
+data:
+  # Application settings
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+  
+  # Orleans clustering configuration
+  ORLEANS_CLUSTER_ID: "orleans-urlshortener"
+  ORLEANS_SERVICE_ID: "urlshortener-service"
+  
+  # Logging configuration
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+  Logging__LogLevel__Microsoft.Orleans: "Information"
+  Logging__LogLevel__Orleans.Samples.UrlShortener.Web: "Information"
+  Logging__LogLevel__Orleans.Runtime: "Warning"
+  Logging__Console__IncludeScopes: "false"
+  Logging__Console__TimestampFormat: "yyyy-MM-dd HH:mm:ss "
+  
+  # Additional configuration
+  AllowedHosts: "*"

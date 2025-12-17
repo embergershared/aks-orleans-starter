@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orleans-urlshortener
+  namespace: orleans-urlshortener
+  labels:
+    app: orleans-urlshortener
+spec:
+  type: ClusterIP
+  selector:
+    app: orleans-urlshortener
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  - name: orleans
+    port: 11111
+    targetPort: 11111
+    protocol: TCP
+  - name: orleans-gw
+    port: 30000
+    targetPort: 30000
+    protocol: TCP
+---
+# Headless service for Orleans clustering
+apiVersion: v1
+kind: Service
+metadata:
+  name: orleans-urlshortener-headless
+  namespace: orleans-urlshortener
+  labels:
+    app: orleans-urlshortener
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: orleans-urlshortener
+  ports:
+  - name: orleans
+    port: 11111
+    targetPort: 11111
+    protocol: TCP
+  - name: orleans-gw
+    port: 30000
+    targetPort: 30000
+    protocol: TCP
+---
+# LoadBalancer service for external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: orleans-urlshortener-lb
+  namespace: orleans-urlshortener
+  labels:
+    app: orleans-urlshortener
+spec:
+  type: LoadBalancer
+  selector:
+    app: orleans-urlshortener
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  # Uncomment for HTTPS if you have TLS configured in the application
+  # - name: https
+  #   port: 443
+  #   targetPort: 8081
+  #   protocol: TCP

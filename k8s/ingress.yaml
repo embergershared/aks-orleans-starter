@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orleans-urlshortener
+  namespace: orleans-urlshortener
+  labels:
+    app: orleans-urlshortener
+  annotations:
+    # Uncomment and configure based on your ingress controller
+    # For nginx ingress controller:
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    
+    # For Azure Application Gateway Ingress Controller (AGIC):
+    # kubernetes.io/ingress.class: azure/application-gateway
+    # appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    
+    # For cert-manager (Let's Encrypt):
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx  # Change to your ingress class (e.g., azure-application-gateway)
+  rules:
+  - host: urlshortener.example.com  # UPDATE THIS: Replace with your actual domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orleans-urlshortener
+            port:
+              number: 80
+  # Uncomment to enable TLS/HTTPS
+  # tls:
+  # - hosts:
+  #   - urlshortener.example.com
+  #   secretName: orleans-urlshortener-tls
