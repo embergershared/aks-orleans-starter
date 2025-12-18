@@ -22,7 +22,6 @@ spec:
       serviceAccountName: orleans-urlshortener
       containers:
       - name: orleans-urlshortener
-        # UPDATE THIS: Replace with your actual container registry and image
         image: acruswaksdevdemo.azurecr.io/orleansurlshortener:localhost-clstrg
         imagePullPolicy: Always
         ports:
