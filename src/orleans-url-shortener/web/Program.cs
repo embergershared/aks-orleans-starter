@@ -2,12 +2,28 @@ using Orleans.Samples.UrlShortener.Web.Grains;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseOrleans(static siloBuilder =>
+builder.Host.UseOrleans((ctx, orleansBuilder) =>
 {
-    siloBuilder
-        .UseLocalhostClustering()
-        .AddMemoryGrainStorage("urls");
+    //if (ctx.HostingEnvironment.IsDevelopment())
+    //{
+        // During development time, we don't want to have to deal with
+        // storage emulators or other dependencies. Just "Hit F5" to run.
+        orleansBuilder
+            .UseLocalhostClustering()
+            .AddMemoryGrainStorage("urls");
+    //}
+    //else
+    //{
+    //    // In Kubernetes, we use environment variables and the pod manifest
+    //    //orleansBuilder.UseKubernetesHosting();
+
+    //    // Use Redis for clustering & persistence
+    //    //var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
+    //    //orleansBuilder.UseRedisClustering(options => options.ConnectionString = redisAddress);
+    //    //orleansBuilder.AddRedisGrainStorage("votes", options => options.ConnectionString = redisAddress);
+    //}
 });
+
 
 using var app = builder.Build();
 
