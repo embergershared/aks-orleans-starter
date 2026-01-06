@@ -67,7 +67,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: dncvotingapp.azurecr.io/votingapp
+          image: votingappacr.azurecr.io/votingapp # REPLACEME
           imagePullPolicy: Always
           ports:
           - containerPort: 80
@@ -101,8 +101,8 @@ spec:
           - name: REDIS
             value: "redis" # The name of the redis service
       terminationGracePeriodSeconds: 180
-      imagePullSecrets:
-        - name: dncvotingapp
+      # imagePullSecrets:
+      #   - name: votingappacr # REPLACEME
   minReadySeconds: 60
   strategy:
     rollingUpdate:

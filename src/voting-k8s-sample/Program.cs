@@ -1,3 +1,4 @@
+using Orleans.Dashboard;
 using Voting.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,13 +15,17 @@ builder.Host.UseOrleans((ctx, orleansBuilder) =>
     else
     {
         // In Kubernetes, we use environment variables and the pod manifest
-        //orleansBuilder.UseKubernetesHosting();
+        orleansBuilder.UseKubernetesHosting();
 
         // Use Redis for clustering & persistence
-        //var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
-        //orleansBuilder.UseRedisClustering(options => options.ConnectionString = redisAddress);
-        //orleansBuilder.AddRedisGrainStorage("votes", options => options.ConnectionString = redisAddress);
+        var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
+        orleansBuilder.UseRedisClustering(options => options.ConfigurationOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisAddress));
+        orleansBuilder.AddRedisGrainStorage("votes", options => options.ConfigurationOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisAddress));
     }
+
+    // Add the dashboard
+    orleansBuilder
+        .AddDashboard();
 });
 
 // Add services to the container.
@@ -44,4 +49,5 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.MapOrleansDashboard(routePrefix: "/dashboard");
 app.Run();
