@@ -13,13 +13,17 @@ description: "An Orleans sample demonstrating a voting app deployed to Azure Kub
 
 # Orleans Voting Sample App on Kubernetes
 
-![A screenshot of the application](./screenshot.png)
+![A screenshot of the application](./img/app-votes.jpg)
 
 This is an [Orleans](https://github.com/dotnet/orleans) sample application that demonstrates deployment to Azure Kubernetes Service (AKS). The application is a simplistic Web app for voting on a custom set of options. The application uses [.NET Generic Host](https://docs.microsoft.com/dotnet/core/extensions/generic-host) to co-host [ASP.NET Core](https://docs.microsoft.com/aspnet/core) Blazor Server and Orleans as well as the [Orleans Dashboard](https://github.com/OrleansContrib/OrleansDashboard) together in the same process.
 
-![A screenshot of the Orleans dashboard](./dashboard.png)
+![A screenshot of the Orleans dashboard](./img/dashboard-overview.jpg)
 
 The Web app uses Blazor Server components which call into Orleans grains for real-time voting updates.
+
+In AKS, the application uses Kubernetes pod discovery for Orleans clustering and Redis for grain state persistence. It also uses pods directly as silos, with silo-to-silo communication over the cluster network.
+
+![A screenshot of the Orleans dashboard silos on AKS with 12 pods/replicas](./img/dashboard-silos.jpg)
 
 ## Upgrades from Original Sample
 
