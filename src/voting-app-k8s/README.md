@@ -207,27 +207,11 @@ kubectl get service votingapp
 
 The `EXTERNAL-IP` value is the public endpoint for your application.
 
-## Kubernetes Manifests Reference
+## Kubernetes Manifests Key elements
 
-### `k8s/3.voting-app-reqs.yaml` - Service and RBAC
+### in `k8s/3.voting-app-reqs.yaml` => Required RBAC for `Microsoft.Orleans.Hosting.Kubernetes`
 
 ```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: votingapp
-spec:
-  type: LoadBalancer
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-  - name: https
-    port: 443
-    targetPort: 8080
-  selector:
-    app: votingapp
----
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -250,9 +234,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
-### `k8s/5.voting-app-deployment.yaml` - Application Deployment
-
-Key configuration for Orleans on Kubernetes:
+### in `k8s/5.voting-app-deployment.yaml` - Key configuration in Kubernetes `deployment` for `Microsoft.Orleans.Hosting.Kubernetes`
 
 ```yaml
 apiVersion: apps/v1
