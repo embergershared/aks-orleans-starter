@@ -48,9 +48,9 @@ spec:
         - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
           value: "120"
         - name: REDIS
-          value: "redis" # The name of the redis service # redis.other-ns.svc.cluster.local
+          value: "redis" # <= here, it uses the redis K8S service in same namespace. For cross namespace, use: redis.other-ns.svc.cluster.local.
       terminationGracePeriodSeconds: 180
-      # imagePullSecrets:
+      # imagePullSecrets: # Not needed since using AKS / ACR integration
       #   - name: votingappacr # REPLACEME
   minReadySeconds: 60
   strategy:
