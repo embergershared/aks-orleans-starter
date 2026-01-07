@@ -11,7 +11,7 @@ if ($LASTEXITCODE -eq 0) {
   docker push "$acrLoginServer/orleans/votingapp"
 }
 if ($LASTEXITCODE -eq 0) {
-  kubectl apply -f ./k8s/voting-app-deployment.yaml
+  kubectl apply -f ./k8s/5.voting-app-deployment.yaml
 }
 if ($LASTEXITCODE -eq 0) {
   kubectl rollout restart deployment/votingapp
