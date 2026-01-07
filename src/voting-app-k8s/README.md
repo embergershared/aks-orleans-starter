@@ -4,207 +4,210 @@ languages:
 products:
 - dotnet
 - dotnet-orleans
+- azure-kubernetes-service
 page_type: sample
 name: "Orleans Voting sample app on Kubernetes"
 urlFragment: "orleans-voting-sample-app-on-kubernetes"
-description: "An Orleans sample demonstrating a voting app on Kubernetes."
+description: "An Orleans sample demonstrating a voting app deployed to Azure Kubernetes Service (AKS)."
 ---
 
-# Orleans Voting sample app on Kubernetes
+# Orleans Voting Sample App on Kubernetes
 
 ![A screenshot of the application](./screenshot.png)
 
-This is an [Orleans](https://github.com/dotnet/orleans) sample application that demonstrates deployment to Kubernetes. The application is a simplistic Web app for voting on a custom set of options. The application uses [.NET Generic Host](https://docs.microsoft.com/dotnet/core/extensions/generic-host) to co-host [ASP.NET Core](https://docs.microsoft.com/aspnet/core) and Orleans as well as the [Orleans Dashboard](https://github.com/OrleansContrib/OrleansDashboard) together in the same process.
+This is an [Orleans](https://github.com/dotnet/orleans) sample application that demonstrates deployment to Azure Kubernetes Service (AKS). The application is a simplistic Web app for voting on a custom set of options. The application uses [.NET Generic Host](https://docs.microsoft.com/dotnet/core/extensions/generic-host) to co-host [ASP.NET Core](https://docs.microsoft.com/aspnet/core) Blazor Server and Orleans as well as the [Orleans Dashboard](https://github.com/OrleansContrib/OrleansDashboard) together in the same process.
 
 ![A screenshot of the Orleans dashboard](./dashboard.png)
 
-The Web app sends HTTP requests which are handled by ASP.NET Core MVC controllers which call into Orleans grains.
+The Web app uses Blazor Server components which call into Orleans grains for real-time voting updates.
 
-## Sample prerequisites
+## Upgrades from Original Sample
 
-This sample is written in C# and targets .NET 7.0. It requires the [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) or later.
+This sample has been upgraded from the original Microsoft sample:
 
-## Building the sample
+| Component | Original | Current |
+| --------- | -------- | ------- |
+| .NET | 7.0 | **8.0** |
+| Microsoft.Orleans.Server | 7.x | **10.0.0-rc.2** |
+| Microsoft.Orleans.Hosting.Kubernetes | 7.x | **10.0.0-rc.2** |
+| Microsoft.Orleans.Clustering.Redis | N/A (used community packages) | **10.0.0-rc.2** |
+| Microsoft.Orleans.Persistence.Redis | N/A (used community packages) | **10.0.0-rc.2** |
+| Microsoft.Orleans.Dashboard | 7.x | **10.0.0-rc.2** |
 
-To download and run the sample, follow these steps:
+**Key Changes:**
 
-1. Download and unzip the sample.
-2. In Visual Studio (2022 or later):
-    1. On the menu bar, choose **File** > **Open** > **Project/Solution**.
-    2. Navigate to the folder that holds the unzipped sample code, and open the C# project (.csproj) file.
-    3. Choose the <kbd>F5</kbd> key to run with debugging, or <kbd>Ctrl</kbd>+<kbd>F5</kbd> keys to run the project without debugging.
-3. From the command line:
-   1. Navigate to the folder that holds the unzipped sample code.
-   2. At the command line, type [`dotnet run`](https://docs.microsoft.com/dotnet/core/tools/dotnet-run).
+- Upgraded to .NET 8.0 LTS
+- Migrated to official Microsoft Orleans Redis packages (previously used community `Orleans.Clustering.Redis` and `Orleans.Persistence.Redis`)
+- Updated Orleans Dashboard integration to use `/dashboard` route instead of separate port
+- Reorganized Kubernetes manifests into separate files in the `k8s/` folder for better maintainability
+- Added build and deployment automation scripts
 
-The application can be run locally by executing:
+## Prerequisites
 
-```powershell
-dotnet run -c Release -- --environment Development --urls http://localhost:5000
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- An Azure subscription with an AKS cluster and Azure Container Registry (ACR)
+
+## Project Structure
+
+```text
+voting-app-k8s/
+├── Program.cs              # Application entry point with Orleans configuration
+├── Dockerfile              # Multi-stage Docker build
+├── Voting.csproj           # Project file with Orleans 10.0 packages
+├── Grains/                 # Orleans grain implementations
+│   ├── PollGrain.cs        # Poll state and voting logic
+│   ├── VoteGrain.cs        # Individual vote tracking
+│   └── UserAgentGrain.cs   # User session management
+├── Pages/                  # Blazor Razor pages
+│   ├── Index.razor         # Home page
+│   ├── Poll.razor          # Poll voting UI
+│   └── PollEditor.razor    # Poll creation/editing
+├── Data/                   # Services
+│   ├── PollService.cs      # Poll management service
+│   └── DemoService.cs      # Demo data generation
+└── k8s/                    # Kubernetes manifests
+    ├── 1.run-local.ps1     # Local development script
+    ├── 2.redis.yaml        # Redis deployment and service
+    ├── 3.voting-app-reqs.yaml  # Service and RBAC configuration
+    ├── 4.build-push-image.ps1  # Build and deploy script
+    └── 5.voting-app-deployment.yaml  # Application deployment
 ```
 
-Once the application starts, open a browser to <http://localhost:5000> to play with the app. The Orleans Dashboard will be available at <http://localhost:8888.> The application can also be deployed to Kubernetes. The key file for deploying this sample to Kubernetes is [`deployment.yaml`](./deployment.yaml), which describes the required Kubernetes resources. Before deploying the app, you will need to provision the following resources:
+## Running Locally
 
-* A resource group
-* An Azure Container Registry (ACR) container registry
-* An Azure Kubernetes Service (AKS) cluster
-* A Service Principal which allows AKS to access ACR
+### Option 1: Using the Script
 
-The [`provision.ps1`](./provision.ps1) script attempts to automate these steps, with some required names defined at the top of the script.
-It is best to execute the following steps in a **PowerShell** terminal one-by-one since the script performs no error handling.
+```powershell
+cd k8s
+.\1.run-local.ps1
+```
 
-```azurecli
-# Choose some resource names. Note that some of these are globally unique across all of Azure, so you will need to change these values.
-$resourceGroup = "votingapp"
+### Option 2: Manual Command
+
+```powershell
+dotnet run -c Release -- --environment Development --urls http://localhost:5024
+```
+
+Once the application starts:
+
+- **Voting App**: <http://localhost:5024>
+- **Orleans Dashboard**: <http://localhost:5024/dashboard>
+
+## Building and Deploying to AKS
+
+### Step 1: Provision Azure Resources
+
+Before deploying, ensure you have the following Azure resources:
+
+- A resource group
+- An Azure Container Registry (ACR)
+- An Azure Kubernetes Service (AKS) cluster with ACR integration
+
+```powershell
+# Example: Create resources (customize names as needed)
+$resourceGroup = "rg-voting-app"
 $location = "westus"
-$clusterName = "votingapp"
-$containerRegistry = "votingappacr"
+$clusterName = "aks-voting-app"
+$containerRegistry = "acrvotingapp"
 
 az login
 
-# Create a resource group
+# Create resource group
 az group create --name $resourceGroup --location $location
 
-# Create an AKS cluster. This can take a few minutes
-az aks create --resource-group $resourceGroup --name $clusterName --node-count 3
-
-# If you haven't already, install the Kubernetes CLI
-az aks install-cli
-
-# Authenticate the Kubernetes CLI
-az aks get-credentials --resource-group $resourceGroup --name $clusterName
-
-# Create an Azure Container Registry account and login to it
+# Create ACR
 az acr create --name $containerRegistry --resource-group $resourceGroup --sku Standard
 
-# Create a service principal for the container registry and register it with Kubernetes as an image pulling secret
-$acrId = $(az acr show --name $containerRegistry --query id --output tsv)
-$acrServicePrincipalName = "$($containerRegistry)-aks-service-principal"
-$acrSpPw = $(az ad sp create-for-rbac --name http://$acrServicePrincipalName --scopes $acrId --role acrpull --query password --output tsv)
-$acrSpAppId = $(az ad sp show --id http://$acrServicePrincipalName --query appId --output tsv)
-$acrLoginServer = $(az acr show --name $containerRegistry --resource-group $resourceGroup --query loginServer).Trim('"')
-kubectl create secret docker-registry $containerRegistry --namespace default --docker-server=$acrLoginServer --docker-username=$acrSpAppId --docker-password=$acrSpPw
+# Create AKS cluster with ACR integration
+az aks create `
+    --resource-group $resourceGroup `
+    --name $clusterName `
+    --node-count 3 `
+    --attach-acr $containerRegistry `
+    --generate-ssh-keys
+
+# Get AKS credentials
+az aks get-credentials --resource-group $resourceGroup --name $clusterName
 ```
 
-With those resources provisioned, we can define our application and deploy it.
-Create a file called `deployment.yaml` with the following contents, making changes where necessary depending on the resource names you chose when provisioning the resources.
-Look for the `# REPLACEME` comments and replace those values.
-We will explain the structure of the file below.
+### Step 2: Deploy Redis
 
-``` yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-  template:
-    metadata:
-      labels:
-        app: redis
-    spec:
-      containers:
-      - name: redis
-        image: mcr.microsoft.com/oss/bitnami/redis:6.0.8
-        env:
-        - name: ALLOW_EMPTY_PASSWORD
-          value: "yes"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 256Mi
-        ports:
-        - containerPort: 6379
-          name: redis
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-spec:
-  ports:
-  - port: 6379
-  selector:
-    app: redis
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: votingapp
-  labels:
-    app: votingapp
-spec:
-  selector:
-    matchLabels:
-      app: votingapp
-  replicas: 3
-  template:
-    metadata:
-      labels:
-        app: votingapp
+Redis is used for Orleans clustering and grain state persistence.
 
-        # The serviceId label is used to identify the service to Orleans
-        orleans/serviceId: votingapp
+```powershell
+kubectl apply -f k8s/2.redis.yaml
+```
 
-        # The clusterId label is used to identify an instance of a cluster to Orleans.
-        # Typically, this will be the same value as serviceId or any fixed value.
-        # In cases where you are not using rolling deployments (for example, blue/green deployments),
-        # this value can allow for distinct clusters which do not communicate directly with each others,
-        # but which still share the same storage and other resources.
-        orleans/clusterId: votingapp
-    spec:
-      containers:
-        - name: main
-          image: votingappacr.azurecr.io/votingapp # REPLACEME
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 80
-          - containerPort: 443
-          - containerPort: 11111
-          - containerPort: 8888
-          env:
-          # Configure settings to let Orleans know which cluster it belongs to and which pod it is running in
-          - name: ORLEANS_SERVICE_ID
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['orleans/serviceId']
-          - name: ORLEANS_CLUSTER_ID
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['orleans/clusterId']
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
-            value: "120"
-          - name: REDIS
-            value: "redis" # The name of the redis service
-      terminationGracePeriodSeconds: 180
-      imagePullSecrets:
-        - name: votingappacr # REPLACEME
-  minReadySeconds: 60
-  strategy:
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+**`k8s/2.redis.yaml`** creates:
 
----
-# In order to be able to access the service from outside the cluster, we will need to add a Service object
+- A Redis Deployment with the `mcr.microsoft.com/oss/bitnami/redis:6.0.8` image
+- A ClusterIP Service named `redis` on port 6379
+
+### Step 3: Deploy RBAC and Service
+
+Orleans requires pod discovery permissions for Kubernetes clustering.
+
+```powershell
+kubectl apply -f k8s/3.voting-app-reqs.yaml
+```
+
+**`k8s/3.voting-app-reqs.yaml`** creates:
+
+- A LoadBalancer Service exposing ports 80 and 443
+- A Role granting `get`, `watch`, `list` permissions on pods
+- A RoleBinding associating the default service account with the role
+
+### Step 4: Build, Push, and Deploy
+
+Use the provided script to build the Docker image, push to ACR, and deploy:
+
+```powershell
+cd k8s
+.\4.build-push-image.ps1
+```
+
+Or manually:
+
+```powershell
+$resourceGroup = "your-resource-group"
+$containerRegistry = "your-acr-name"
+
+$acrLoginServer = $(az acr show --name $containerRegistry --resource-group $resourceGroup --query loginServer --output tsv)
+az acr login --name $containerRegistry
+
+# Build and push
+docker build . -t "$acrLoginServer/orleans/votingapp"
+docker push "$acrLoginServer/orleans/votingapp"
+
+# Deploy
+kubectl apply -f k8s/5.voting-app-deployment.yaml
+kubectl rollout restart deployment/votingapp
+```
+
+### Step 5: Verify Deployment
+
+Watch the pods start up:
+
+```powershell
+kubectl get pods --watch
+```
+
+Get the external IP address:
+
+```powershell
+kubectl get service votingapp
+```
+
+The `EXTERNAL-IP` value is the public endpoint for your application.
+
+## Kubernetes Manifests Reference
+
+### `k8s/3.voting-app-reqs.yaml` - Service and RBAC
+
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -214,21 +217,19 @@ spec:
   ports:
   - name: http
     port: 80
+    targetPort: 8080
   - name: https
-    port: 433
-  - name: orleans-dashboard
-    port: 8888
+    port: 443
+    targetPort: 8080
   selector:
     app: votingapp
-
-# For RBAC-enabled clusters, the Kubernetes service account for the pods may also need to be granted the required access:
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pod-reader
 rules:
-- apiGroups: [ "" ]
+- apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "watch", "list"]
 ---
@@ -239,47 +240,116 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
-  apiGroup: ''
 roleRef:
   kind: Role
   name: pod-reader
-  apiGroup: ''
+  apiGroup: rbac.authorization.k8s.io
 ```
 
-The file is large and could be intimidating at first, but the basic structure is to create two *Deployment* resources: one for Redis and one for our application. Each Deployment has a corresponding *Service* which is used for routing traffic. In addition, because this sample uses the `Microsoft.Orleans.Kubernetes.Hosting` package, which queries the Kubernetes API, you will need to provision a *Role* and corresponding *RoleBinding* if your cluster is RBAC enabled. The `deployment.yaml` file contains one section for each of those resources, separated by `---`.
+### `k8s/5.voting-app-deployment.yaml` - Application Deployment
 
-With the `deployment.yaml` file created, now we need to build and deploy the application. Use `docker` to copy the source into a new build container and build the application, then copy the result into a fresh layer.
+Key configuration for Orleans on Kubernetes:
 
-Execute the following to build the container image, push it to Azure Container Registry, and deploy the `deployment.yaml` file to Kubernetes.
-Note that you will need to substitute the variable names as you did when provisioning the resources.
-
-```azurepowershell
-$resourceGroup = "votingapp"
-$containerRegistry = "votingappacr"
-
-$acrLoginServer = $(az acr show --name $containerRegistry --resource-group $resourceGroup --query loginServer).Trim('"')
-az acr login --name $containerRegistry
-
-docker build . -t $acrLoginServer/votingapp &&
-docker push $acrLoginServer/votingapp &&
-kubectl apply -f ./deployment.yaml &&
-kubectl rollout restart deployment/votingapp
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: votingapp
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: votingapp
+        orleans/serviceId: votingapp    # Orleans service identifier
+        orleans/clusterId: votingapp    # Orleans cluster identifier
+    spec:
+      containers:
+      - name: main
+        image: your-acr.azurecr.io/orleans/votingapp:latest
+        ports:
+        - containerPort: 8080           # HTTP
+        - containerPort: 11111          # Orleans silo-to-silo
+        env:
+        # Orleans cluster configuration
+        - name: ORLEANS_SERVICE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['orleans/serviceId']
+        - name: ORLEANS_CLUSTER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['orleans/clusterId']
+        # Pod identity for Orleans clustering
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        # Graceful shutdown
+        - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
+          value: "120"
+        # Redis connection
+        - name: REDIS
+          value: "redis"
+      terminationGracePeriodSeconds: 180
+  minReadySeconds: 60
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
 ```
 
-The last command executed restarts the deployment.
-That is only necessary if you use the above script to publish an *updated* image.
-Similarly, re-applying the `deployment.yaml` file is not necessary if it is unchanged.
+## Orleans Configuration
 
-If all of the previous steps succeeded, then we can watch the changes in the active pods:
+The `Program.cs` configures Orleans differently based on the environment:
 
-```powershell
-kubectl get pods --watch
+```csharp
+builder.Host.UseOrleans((ctx, orleansBuilder) =>
+{
+    if (ctx.HostingEnvironment.IsDevelopment())
+    {
+        // Local development: in-memory clustering and storage
+        orleansBuilder
+            .UseLocalhostClustering()
+            .AddMemoryGrainStorage("votes");
+    }
+    else
+    {
+        // Kubernetes: Use pod discovery and Redis
+        orleansBuilder.UseKubernetesHosting();
+
+        var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
+        orleansBuilder.UseRedisClustering(options => 
+            options.ConfigurationOptions = ConfigurationOptions.Parse(redisAddress));
+        orleansBuilder.AddRedisGrainStorage("votes", options => 
+            options.ConfigurationOptions = ConfigurationOptions.Parse(redisAddress));
+    }
+
+    orleansBuilder.AddDashboard();
+});
 ```
 
-If no errors were encountered, then the pods should all enter the *Running* state, at which point we can find out what IP address was provisioned for our service by querying the `votingapp` service object which we created:
+## NuGet Packages
 
-```powershell
-kubectl get service votingapp
-```
+| Package | Version | Purpose |
+| ------- | ------- | ------- |
+| Microsoft.Orleans.Server | 10.0.0-rc.2 | Core Orleans server functionality |
+| Microsoft.Orleans.Hosting.Kubernetes | 10.0.0-rc.2 | Kubernetes pod discovery and hosting |
+| Microsoft.Orleans.Clustering.Redis | 10.0.0-rc.2 | Redis-based cluster membership |
+| Microsoft.Orleans.Persistence.Redis | 10.0.0-rc.2 | Redis-based grain state persistence |
+| Microsoft.Orleans.Dashboard | 10.0.0-rc.2 | Web-based Orleans monitoring dashboard |
 
-The `EXTERNAL-IP` value in the output is how we can access the service using a Web browser.
+## Resources
+
+- [Orleans Documentation](https://learn.microsoft.com/dotnet/orleans/)
+- [Orleans on Kubernetes](https://learn.microsoft.com/dotnet/orleans/deployment/kubernetes)
+- [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/azure/aks/)
+- [Orleans GitHub Repository](https://github.com/dotnet/orleans)
