@@ -48,7 +48,7 @@ spec:
         - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
           value: "120"
         - name: REDIS
-          value: "redis" # The name of the redis service
+          value: "redis" # The name of the redis service # redis.other-ns.svc.cluster.local
       terminationGracePeriodSeconds: 180
       # imagePullSecrets:
       #   - name: votingappacr # REPLACEME
