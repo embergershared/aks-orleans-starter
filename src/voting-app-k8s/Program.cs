@@ -26,6 +26,7 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
         //});
 
         // This enables Kubernetes membership & networking integration
+        // More information can be found here: https://learn.microsoft.com/en-us/dotnet/orleans/deployment/kubernetes
         siloBuilder.UseKubernetesHosting();
 
         // Use Redis for clustering & persistence
