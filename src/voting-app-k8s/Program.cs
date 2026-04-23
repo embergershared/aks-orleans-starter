@@ -25,7 +25,7 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
         //    options.ServiceId = Environment.GetEnvironmentVariable("ORLEANS_SERVICE_ID") ?? "votingapp-service";
         //});
 
-        // This enables Kubernetes membership & networking integration
+        // This enables Kubernetes membership & networking integration, leveraging Kubernetes built-in values + environment variables
         // More information can be found here: https://learn.microsoft.com/en-us/dotnet/orleans/deployment/kubernetes
         siloBuilder.UseKubernetesHosting();
 
