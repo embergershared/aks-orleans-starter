@@ -18,16 +18,17 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
         // In Kubernetes, the default UseKubernetesHosting() uses environment variables and the pod manifest to populate ClusterId and ServiceId from the following environment variables: ORLEANS_SERVICE_ID & ORLEANS_CLUSTER_ID, which can be bound to the pod labels.
         // It can also be customize as needed, for example, to use a specific Cluster and Service IDs:
 
-        // This block allows to control the Orleans Cluster and Service names through environment variables (should be set in K8S the deployment)
+        // This enables Kubernetes membership & networking integration, leveraging Kubernetes built-in values + environment variables.
+        // More information can be found here: https://learn.microsoft.com/en-us/dotnet/orleans/deployment/kubernetes
+        siloBuilder.UseKubernetesHosting();
+
+        // This block allows to control the Orleans Cluster and Service names through environment variables (should be set in K8S the deployment).
+        // Setting the values after the default KubernetesHosting will override its defaults.
         //siloBuilder.Configure<ClusterOptions>(options =>
         //{
         //    options.ClusterId = Environment.GetEnvironmentVariable("ORLEANS_CLUSTER_ID") ?? "votingapp-cluster";
         //    options.ServiceId = Environment.GetEnvironmentVariable("ORLEANS_SERVICE_ID") ?? "votingapp-service";
         //});
-
-        // This enables Kubernetes membership & networking integration, leveraging Kubernetes built-in values + environment variables
-        // More information can be found here: https://learn.microsoft.com/en-us/dotnet/orleans/deployment/kubernetes
-        siloBuilder.UseKubernetesHosting();
 
         // Use Redis for clustering & persistence
         var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
