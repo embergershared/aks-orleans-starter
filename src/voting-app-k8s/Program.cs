@@ -32,7 +32,10 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
         // Use Redis for clustering & persistence
         var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
         
-        // Clustering is used to manage Silos status and membership in the cluster, mainly in a dedicated table
+        // Orleans Clustering orchestrate silos membership and health in the Cluster. It is based on a MembershipTable that is called by all the Silos.
+        // Orleans requires all silos to be able to access this table.
+        // Many cluster providers are available to store this table.
+        // More information here: https://learn.microsoft.com/en-us/dotnet/orleans/implementation/cluster-management?pivots=orleans-9-0#membership-table
         siloBuilder.UseRedisClustering(options => options.ConfigurationOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisAddress));
         
         // GrainStorage is for Grain persistence before they are stored in a data repository
