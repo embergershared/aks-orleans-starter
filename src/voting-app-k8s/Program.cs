@@ -17,6 +17,8 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
     {
         // In Kubernetes, the default UseKubernetesHosting() uses environment variables and the pod manifest to populate ClusterId and ServiceId from the following environment variables: ORLEANS_SERVICE_ID & ORLEANS_CLUSTER_ID, which can be bound to the pod labels.
         // It can also be customize as needed, for example, to use a specific Cluster and Service IDs:
+
+        // This block allows to control the Orleans Cluster and Service names through environment variables (should be set in K8S the deployment)
         //siloBuilder.Configure<ClusterOptions>(options =>
         //{
         //    options.ClusterId = Environment.GetEnvironmentVariable("ORLEANS_CLUSTER_ID") ?? "votingapp-cluster";
@@ -28,7 +30,11 @@ builder.Host.UseOrleans((ctx, siloBuilder) =>
 
         // Use Redis for clustering & persistence
         var redisAddress = $"{Environment.GetEnvironmentVariable("REDIS")}:6379";
+        
+        // Clustering is used to manage Silos status and membership in the cluster, mainly in a dedicated table
         siloBuilder.UseRedisClustering(options => options.ConfigurationOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisAddress));
+        
+        // GrainStorage is for Grain persistence before they are stored in a data repository
         siloBuilder.AddRedisGrainStorage("votes", options => options.ConfigurationOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisAddress));
     }
 
